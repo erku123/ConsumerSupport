@@ -6,15 +6,16 @@ using ConsumerSupport.Controllers;
 using ConsumerSupport.Models.Requests;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
+
 namespace tests
 {
     public class RequestsControllerTests
     {
-        private RequestsControllerTests _controller;
+        private RequestsController _controller;
 
         public RequestsControllerTests()
         {
-                _controller = new RequestsControllerTests();
+                _controller = new RequestsController();
         }
 
         [Fact]

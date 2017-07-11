@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ConsumerSupport.Models.Requests;
 using Microsoft.AspNetCore.Authorization;
 
-namespace ConsumerSupport.Tests.Controllers
+namespace ConsumerSupport.Controllers
 {
     [Authorize]
     public class RequestsController : Controller
