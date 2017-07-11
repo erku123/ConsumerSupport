@@ -9,15 +9,19 @@
     {
         <div>Title:</div>
         @Html.EditorFor(m => m.Title)
+        @Html.ValidationMessageFor(m => m.Title)
 
         <div>Description:</div>
         @Html.EditorFor(m => m.Description)
+        @Html.ValidationMessageFor(m => m.Description)
 
         <div>Deadline:</div>
         @Html.EditorFor(m => m.DeadlineDate)
+        @Html.ValidationMessageFor(m => m.DeadlineDate)
 
         <div>Deadline:</div>
         @Html.EditorFor(m => m.DeadlineTime)
+        @Html.ValidationMessageFor(m => m.DeadlineTime)
 
         <button type="submit">Submit</button>
     }
