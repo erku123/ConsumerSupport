@@ -55,8 +55,16 @@ namespace ConsumerSupport.Tests.Models.Requests
             Assert.Equal(1, result.Count);
             Assert.Equal("testTitle1", result.First().Title);
 
+        }
 
+        [Fact]
+        public void Find_By_User_Returns_Empty_List_With_Wrong_Id()
+        {
+            // act
+            var result = _requestsFinder.FindByUserId("99999999");
 
+            // Assert
+            Assert.Equal(0, result.Count);
         }
         
 

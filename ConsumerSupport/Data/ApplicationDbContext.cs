@@ -24,6 +24,6 @@ namespace ConsumerSupport.Data
             // Add your customizations after calling base.OnModelCreating(builder);
         }
 
-        public DbSet<Request> Requests { get; set; }    
+        public virtual DbSet<Request> Requests { get; set; }    
     }
 }

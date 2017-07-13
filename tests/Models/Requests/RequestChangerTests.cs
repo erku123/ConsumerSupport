@@ -68,7 +68,20 @@ namespace ConsumerSupport.Tests.Models.Requests
         [Fact]
         public void Deletes_Model_And_Saves_To_Database()
         {
-            
+
+            const int dummyId = 1;
+            var dummyRequest = new Request("", "", new DateTime(),"");
+
+            _contextMock.Setup(c => c.Requests.Find(dummyId)).Returns(dummyRequest);
+
+            // Act
+            _requestChanger.DeleteRequest(1);
+
+            // Assert
+            _contextMock.Verify(c => c.Requests.Find(It.Is<int>(r => r == dummyId)), Times.Once);
+            _contextMock.Verify(c => c.Requests.Remove(It.Is<Request>(r => r == dummyRequest)), Times.Once);
+            _contextMock.Verify(c => c.SaveChanges(), Times.Once);
+
         }
 
     }
