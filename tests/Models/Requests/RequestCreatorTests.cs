@@ -14,7 +14,6 @@ namespace ConsumerSupport.Tests.Models.Requests
     public class RequestCreatorTests
     {
         private RequestCreator _requestCreator;
-
         private Mock<ApplicationDbContext> _contextMock;
 
         public RequestCreatorTests()

@@ -14,15 +14,19 @@ namespace ConsumerSupport.Controllers
     {
 
         private readonly IRequestCreator _requestCreator;
+        private readonly IRequestsFinder _requestFinder;
+        private readonly IRequestChanger _requestChanger;
 
-        public RequestsController(IRequestCreator requestCreator)
+        public RequestsController(IRequestCreator requestCreator, IRequestsFinder requestsFinder, IRequestChanger requestChanger)
         {
             _requestCreator = requestCreator;
+            _requestFinder = requestsFinder;
+            _requestChanger = requestChanger;
         }
 
         public IActionResult Add()
         {
-            return View("Add");
+            return View("Add", new AddRequestViewModel());
         }
 
         [HttpPost]
@@ -33,12 +37,39 @@ namespace ConsumerSupport.Controllers
                 return View("Add", model);
 
             _requestCreator.Create(model, User);
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Display", "Requests");
         }
 
         public IActionResult Display()
         {
-            return NoContent();
+
+            var requests = _requestFinder.FindByUser(User);
+
+            return View("Display", requests);
+        }
+
+        [HttpPost]
+        public IActionResult Delete(int Id)
+        {
+            _requestChanger.DeleteRequest(Id);
+
+            return Display();
+        }
+
+        public IActionResult Edit(int Id)
+        {
+
+            var changeRequest = _requestChanger.GetChangeRequest(Id);
+
+            return View("Edit", changeRequest);
+        }
+
+        [HttpPost]
+        public IActionResult Edit(ChangeRequestViewModel changeRequest)
+        {
+            _requestChanger.EditRequest(changeRequest);
+
+            return Display();
         }
 
 

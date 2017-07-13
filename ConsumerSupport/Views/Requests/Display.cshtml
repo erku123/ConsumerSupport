@@ -1,0 +1,63 @@
+@using System
+@using System.Collections.Generic
+@using ConsumerSupport.Entities.Requests
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Display";
+    
+}
+
+@model List<Request>
+
+<div>
+    
+    @foreach (var request in Model)
+    {
+        bool isCritical = DateTime.Now > request.Deadline.AddHours(-1);
+        bool isOverDeadline = DateTime.Now > request.Deadline;
+
+        <div class="panel @(isCritical ? (isOverDeadline ? "panel-danger" : "panel-warning") : "panel-info")">
+            
+            <div class="panel-heading"><h1 class="panel-title">@request.Title</h1></div>
+            <div class="panel-body">
+                
+                <div>
+                    <p>@request.Description</p>
+                </div>
+                
+
+                <div class="progress" style="position: relative">
+                    <div class="progress-bar @(isCritical ? (isOverDeadline ? "progress-bar-danger" : "progress-bar-warning") : "progress-bar-info")" role="progressbar" style="width: @((DateTime.Now - request.CreatedOn).TotalMinutes / (request.Deadline - request.CreatedOn).TotalMinutes * 100)%">
+                        <span class="sr-only"></span>
+                    </div>
+
+                    <div style="position: absolute; left: 5px">@request.CreatedOn</div>
+
+                    <div style="position: absolute; right: 5px">@request.Deadline</div>
+                </div>
+                
+                <div>
+                    @using (Html.BeginForm("Delete", "Requests", new {Id = request.Id}, FormMethod.Post))
+                    {
+                        <input type="submit" style="float: right;"class="btn btn-danger" value="Delete"/>
+                    }
+                    
+                    @using (Html.BeginForm("Edit", "Requests", new { Id = request.Id }, FormMethod.Get))
+                    {
+                        <input type="submit" class="btn btn-info" value="Edit" />
+                    }
+                </div>
+                
+                
+                
+
+            </div>
+            
+        </div>
+    }
+
+</div>
+
+
+

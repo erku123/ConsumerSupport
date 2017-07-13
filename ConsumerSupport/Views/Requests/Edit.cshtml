@@ -1,17 +1,18 @@
-
 @using ConsumerSupport.Models.Requests
 @using Microsoft.AspNetCore.Mvc.Rendering
-@model ConsumerSupport.Models.Requests.AddRequestViewModel
+@model ConsumerSupport.Models.Requests.ChangeRequestViewModel
 
+@{
+    ViewData["Title"] = "Edit";
+    var changeRequest = (ChangeRequestViewModel) ViewData["changeRequest"];
+}
 
 <div>
-
-    @using (Html.BeginForm("Add", "Requests", FormMethod.Post))
+    @using (Html.BeginForm("Edit", "Requests", FormMethod.Post))
     {
-
         <div class="form-group">
             <label for="usr">Title:</label>
-            @Html.EditorFor(m => m.Title, new { htmlAttributes = new {@class = "form-control"} })
+            @Html.EditorFor(m => m.Title, new { htmlAttributes = new {@class = "form-control" } })
             @Html.ValidationMessageFor(m => m.Title)
         </div>
 
@@ -33,9 +34,7 @@
             @Html.ValidationMessageFor(m => m.DeadlineTime)
         </div>
 
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-success">Edit</button>
     }
-
-
-
 </div>
+

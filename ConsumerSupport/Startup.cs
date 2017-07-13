@@ -56,6 +56,8 @@ namespace ConsumerSupport
 
             // App
             services.AddScoped<IRequestCreator, RequestCreator>();
+            services.AddScoped<IRequestsFinder, RequestsFinder>();
+            services.AddScoped<IRequestChanger, RequestChanger>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
