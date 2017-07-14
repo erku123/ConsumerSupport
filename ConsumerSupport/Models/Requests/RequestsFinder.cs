@@ -14,7 +14,8 @@ namespace ConsumerSupport.Models.Requests
 
     public interface IRequestsFinder
     {
-        List<Request> FindByUser(IPrincipal user);
+        Request[] FindByUserId(string userId);
+        Request Find(int id);
     }
 
     public class RequestsFinder : IRequestsFinder
@@ -28,34 +29,15 @@ namespace ConsumerSupport.Models.Requests
 
         }
 
-        protected virtual List<Request> GetAll()
+
+        public Request[] FindByUserId(string userId)
         {
-            return _context.Requests.ToList();
+            return _context.Requests.Where(r => r.UserId == userId).ToArray();
         }
 
-        public List<Request> FindByUser(IPrincipal user)
+        public Request Find(int id)
         {
-
-            var result = FindByUserId(user.GetUserId());
-          
-            return result;
+            return _context.Requests.Find(id);
         }
-
-        public List<Request> FindByUserId(string userId)
-        {
-            var all = GetAll();
-
-            var result = new List<Request>();
-
-            foreach (var request in all)
-            {
-                if (request.UserId == userId)
-                    result.Add(request);
-            };
-
-            return result;
-        }
-
-
     }
 }

@@ -7,67 +7,43 @@ using System.Text;
 using ConsumerSupport.Data;
 using ConsumerSupport.Entities.Requests;
 using ConsumerSupport.Models.Requests;
+using ConsumerSupport.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 
 namespace ConsumerSupport.Tests.Models.Requests
 {
-
-    public class TestableRequestFinder : RequestsFinder
-    {
-        public TestableRequestFinder(ApplicationDbContext context) : base(context)
-        {
-        }
-
-        protected override List<Request> GetAll()
-        {
-            var result = new List<Request>();
-
-            result.Add(new Request("testTitle1", "testDescription1", new DateTime(), "1"));
-            result.Add(new Request("testTitle2", "testDescription2", new DateTime(), "2"));
-            result.Add(new Request("testTitle3", "testDescription3", new DateTime(), "3"));
-
-            return result;
-        }
-    }
-
     public class RequestFinderTests
     {
 
-        private TestableRequestFinder _requestsFinder;
+        private RequestsFinder _requestsFinder;
         private Mock<ApplicationDbContext> _contextMock;
 
         public RequestFinderTests()
         {
             _contextMock = new Mock<ApplicationDbContext>(new DbContextOptions<ApplicationDbContext>());
-            _requestsFinder = new TestableRequestFinder(_contextMock.Object);
+            _requestsFinder = new RequestsFinder(_contextMock.Object);
         }
 
         [Fact]
         public void Find_By_User_Returns_Correct_Requests()
         {
+            var userId = UniqueString.Next;
+            var expectedRequest1 = new Request(UniqueString.Next, UniqueString.Next, DateTime.Now, userId);
+            var expectedRequest2 = new Request(UniqueString.Next, UniqueString.Next, DateTime.Now, userId);
+            var notExpectedRequest = new Request(UniqueString.Next, UniqueString.Next, DateTime.Now, UniqueString.Next);
+
+            _contextMock.Setup(c => c.GetRequests())
+                .Returns(new[] {expectedRequest1, notExpectedRequest, expectedRequest2}.AsQueryable());
 
             // act
-            var result = _requestsFinder.FindByUserId("1");
+            var result = _requestsFinder.FindByUserId(userId);
 
             // Assert
-            Assert.Equal(1, result.Count);
-            Assert.Equal("testTitle1", result.First().Title);
-
-        }
-
-        [Fact]
-        public void Find_By_User_Returns_Empty_List_With_Wrong_Id()
-        {
-            // act
-            var result = _requestsFinder.FindByUserId("99999999");
-
-            // Assert
-            Assert.Equal(0, result.Count);
-        }
-        
-
-
+            Assert.Equal(result.Length, 2);
+            Assert.Contains(expectedRequest1, result);
+            Assert.Contains(expectedRequest2, result);
+        }       
     }
 }

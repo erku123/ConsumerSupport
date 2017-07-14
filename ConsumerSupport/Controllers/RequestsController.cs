@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using ConsumerSupport.Infrastructure.PrincipalExtensions;
 using ConsumerSupport.Models.Requests;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace ConsumerSupport.Controllers
 {
@@ -16,12 +18,14 @@ namespace ConsumerSupport.Controllers
         private readonly IRequestCreator _requestCreator;
         private readonly IRequestsFinder _requestFinder;
         private readonly IRequestChanger _requestChanger;
+        private readonly IRequestAuthorizer _requestAuthorizer;
 
-        public RequestsController(IRequestCreator requestCreator, IRequestsFinder requestsFinder, IRequestChanger requestChanger)
+        public RequestsController(IRequestCreator requestCreator, IRequestsFinder requestsFinder, IRequestChanger requestChanger, IRequestAuthorizer requestAuthorizer)
         {
             _requestCreator = requestCreator;
             _requestFinder = requestsFinder;
             _requestChanger = requestChanger;
+            _requestAuthorizer = requestAuthorizer;
         }
 
         public IActionResult Add()
@@ -37,29 +41,36 @@ namespace ConsumerSupport.Controllers
                 return View("Add", model);
 
             _requestCreator.Create(model, User);
-            return RedirectToAction("Display", "Requests");
+            return RedirectToAction("List", "Requests");
         }
 
-        public IActionResult Display()
+        public IActionResult List()
         {
 
-            var requests = _requestFinder.FindByUser(User);
+            var requests = _requestFinder.FindByUserId(User.GetUserId());
 
-            return View("Display", requests);
+            return View("List", requests);
         }
 
         [HttpPost]
-        public IActionResult Delete(int Id)
+        public IActionResult Delete(int id)
         {
-            _requestChanger.DeleteRequest(Id);
 
-            return Display();
+            if (!_requestAuthorizer.CanAccess(id, User.GetUserId()))
+                return StatusCode(StatusCodes.Status403Forbidden);
+
+            _requestChanger.DeleteRequest(id);
+
+            return List();
         }
 
-        public IActionResult Edit(int Id)
+        public IActionResult Edit(int id)
         {
 
-            var changeRequest = _requestChanger.GetChangeRequest(Id);
+            if (!_requestAuthorizer.CanAccess(id, User.GetUserId()))
+                return StatusCode(StatusCodes.Status403Forbidden);
+
+            var changeRequest = _requestChanger.GetChangeRequest(id);
 
             return View("Edit", changeRequest);
         }
@@ -67,9 +78,13 @@ namespace ConsumerSupport.Controllers
         [HttpPost]
         public IActionResult Edit(ChangeRequestViewModel changeRequest)
         {
+
+            if (!_requestAuthorizer.CanAccess(changeRequest.Id, User.GetUserId()))
+                return StatusCode(StatusCodes.Status403Forbidden);
+
             _requestChanger.EditRequest(changeRequest);
 
-            return Display();
+            return List();
         }
 
 

@@ -11,7 +11,7 @@ namespace ConsumerSupport.Models.Requests
 {
     public class AddRequestViewModel
     {
-        [MaxLength(10, ErrorMessage = "max length is 10")]
+        [MaxLength(50, ErrorMessage = "max length is 50")]
         [Required(ErrorMessage = "Title is required.")]
         public string Title { get; set; }
 

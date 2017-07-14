@@ -12,6 +12,16 @@
 
 <div style="margin-top: 20px">
     
+    @if (Model.Count <= 0)
+    {
+        <div>
+            <h1>
+                You have no requests
+            </h1>
+            Go to Add Request to create a new request.
+        </div>
+    }
+
     @foreach (var request in Model)
     {
         bool isCritical = DateTime.Now > request.Deadline.AddHours(-1);

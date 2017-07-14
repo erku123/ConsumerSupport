@@ -4,26 +4,38 @@ using System.Linq;
 using System.Threading.Tasks;
 using ConsumerSupport.Controllers;
 using ConsumerSupport.Entities.Requests;
+using ConsumerSupport.Infrastructure.PrincipalExtensions;
 using ConsumerSupport.Models.Requests;
+using ConsumerSupport.Tests.Controllers;
+using ConsumerSupport.Tests.Entities;
+using ConsumerSupport.Tests.Infrastructure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
 
 namespace tests
 {
-    public class RequestsControllerTests
+    public class RequestsControllerTests : ControllerTestBase
     {
         private readonly RequestsController _controller;
         private readonly Mock<IRequestCreator> _requestCreatorMock;
         private readonly Mock<IRequestsFinder> _requestFinderMock;
         private readonly Mock<IRequestChanger> _requestChangerMock;
+        private readonly Mock<IRequestAuthorizer> _requestAuthorizerMock;
+        private string _userId = UniqueString.Next;
 
         public RequestsControllerTests()
         {
             _requestCreatorMock = new Mock<IRequestCreator>();
             _requestFinderMock = new Mock<IRequestsFinder>();
             _requestChangerMock = new Mock<IRequestChanger>();
-            _controller = new RequestsController(_requestCreatorMock.Object, _requestFinderMock.Object, _requestChangerMock.Object);
+            _requestAuthorizerMock = new Mock<IRequestAuthorizer>();
+            
+            _controller = new RequestsController(_requestCreatorMock.Object, _requestFinderMock.Object, _requestChangerMock.Object, _requestAuthorizerMock.Object)
+            {
+                ControllerContext = GetControllerContextMock(_userId).Object
+            };
         }
 
         [Fact]
@@ -61,54 +73,56 @@ namespace tests
             _requestCreatorMock.Verify(c => c.Create(addRequestViewModel, _controller.User), Times.Once);
 
             Assert.Equal("Requests", result.ControllerName);
-            Assert.Equal("Display", result.ActionName);
+            Assert.Equal("List", result.ActionName);
         }
 
         [Fact]
-        public void Display_Finds_Requests_And_Returns_View()
+        public void List_Finds_Requests_And_Returns_View()
         {
 
             // Act
-            var result = (ViewResult) _controller.Display();
+            var result = (ViewResult) _controller.List();
 
             // Assert
-            _requestFinderMock.Verify(f => f.FindByUser(_controller.User), Times.Once);
+            _requestFinderMock.Verify(f => f.FindByUserId(_userId), Times.Once);
 
-            Assert.Equal("Display", result.ViewName);
+            Assert.Equal("List", result.ViewName);
 
         }
 
         [Fact]
-        public void Display_Returns_Correct_Model_To_View()
+        public void List_Returns_Correct_Model_To_View()
         {
 
-            var dummyList = new List<Request>()
+            var dummyList = new []
             {
                 new Request("", "", new DateTime(), "")
             };
 
-            _requestFinderMock.Setup(f => f.FindByUser(_controller.User)).Returns(dummyList);
+            _requestFinderMock.Setup(f => f.FindByUserId(_userId)).Returns(dummyList);
 
 
-            var result = (ViewResult) _controller.Display();
+            var result = (ViewResult) _controller.List();
 
-            var resultList = ((List<Request>) result.Model);
+            var resultList = ((Request[]) result.Model);
 
             Assert.Equal(dummyList.First(), resultList.First());
+            Assert.Equal("List", result.ViewName);
 
         }
 
         [Fact]
-        public void Edit_Returns_Currect_View_And_Model()
+        public void EditPost_Returns_Currect_View_And_Model()
         {
 
             var dummyId = 1;
             var dummyRequest = new ChangeRequestViewModel()
             {
                 Id = dummyId
+                
             };
 
-            
+            _requestAuthorizerMock.Setup(c => c.CanAccess(dummyId, _userId)).Returns(true);
             _requestChangerMock.Setup(c => c.GetChangeRequest(dummyId)).Returns(dummyRequest);
 
             var result = (ViewResult) _controller.Edit(dummyId);
@@ -120,5 +134,55 @@ namespace tests
 
         }
 
+        [Fact]
+        public void Edit_Returns_403Forbidden_When_Unauthorized()
+        {
+
+            var requestId = 21421;
+
+            _requestAuthorizerMock.Setup(c => c.CanAccess(requestId, _userId)).Returns(false);
+
+            // Act
+            var result = (StatusCodeResult) _controller.Edit(requestId);
+
+            // Assert
+            Assert.Equal(StatusCodes.Status403Forbidden, result.StatusCode);
+
+        }
+
+        [Fact]
+        public void EditPost_Returns_403Forbidden_When_Unauthorized()
+        {
+
+            var request = new ChangeRequestViewModel()
+            {
+                Id = 123124
+            };
+
+            _requestAuthorizerMock.Setup(c => c.CanAccess(request.Id, _userId)).Returns(false);
+
+            // Act
+            var result = (StatusCodeResult)_controller.Edit(request);
+
+            // Assert
+            Assert.Equal(StatusCodes.Status403Forbidden, result.StatusCode);
+
+        }
+
+        [Fact]
+        public void Delete_Returns_403Forbidden_When_Unauthorized()
+        {
+
+            var requestId = 21421;
+
+            _requestAuthorizerMock.Setup(c => c.CanAccess(requestId, _userId)).Returns(false);
+
+            // Act
+            var result = (StatusCodeResult)_controller.Delete(requestId);
+
+            // Assert
+            Assert.Equal(StatusCodes.Status403Forbidden, result.StatusCode);
+
+        }
     }
 }

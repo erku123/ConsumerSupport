@@ -13,52 +13,45 @@ using Xunit;
 
 namespace ConsumerSupport.Tests.Models.Requests
 {
-    public class TestableRequestChanger : RequestChanger
-    {
-        public TestableRequestChanger(ApplicationDbContext context) : base(context)
-        {
-        }
-
-        protected override Request Find(int Id)
-        {
-            return new Request("", "", new DateTime(), "");
-        }
-
-    }
 
     public class RequestChangerTests
     {
 
-        private TestableRequestChanger _requestChanger;
+        private RequestChanger _requestChanger;
         private Mock<ApplicationDbContext> _contextMock;
 
         public RequestChangerTests()
         {
             _contextMock = new Mock<ApplicationDbContext>(new DbContextOptions<ApplicationDbContext>());
-            _requestChanger = new TestableRequestChanger(_contextMock.Object);
+            _requestChanger = new RequestChanger(_contextMock.Object);
         }
 
         [Fact]
-        public void Updates_Model_And_Saves_To_Database()
+        public void EditRequest_Updates_Model_And_Saves_To_Database()
         {
 
-            var dummyTitle = "testTitle";
-            var dummyDescription = "testDescription";
-            var dummyId = 1;
+            var requestToBeChanged = new Request("a", "a", new DateTime(), "");
 
             var changedRequest = new ChangeRequestViewModel()
             {
-                Title = dummyTitle,
-                Description = dummyDescription,
-                Id = dummyId
+                Title = "testTitle",
+                Description = "testDescription",
+                DeadlineTime = DateTime.Now,
+                DeadlineDate = DateTime.Today,
+                Id = 1
             };
 
+            _contextMock.Setup(c => c.Requests.Find(changedRequest.Id)).Returns(requestToBeChanged);
+
             // Act
-            var savedRequest = _requestChanger.EditRequest(changedRequest);
+            _requestChanger.EditRequest(changedRequest);
 
             //Assert
-            Assert.Equal(dummyTitle, savedRequest.Title);
-            Assert.Equal(dummyDescription, savedRequest.Description);
+            Assert.Equal(changedRequest.Title, requestToBeChanged.Title);
+            Assert.Equal(changedRequest.Description, requestToBeChanged.Description);
+
+            var expectedDeadline = changedRequest.DeadlineDate.Add(changedRequest.DeadlineTime.TimeOfDay);
+            Assert.Equal(expectedDeadline, requestToBeChanged.Deadline);
 
             _contextMock.Verify(c => c.SaveChanges(), Times.Once);
 
@@ -78,7 +71,6 @@ namespace ConsumerSupport.Tests.Models.Requests
             _requestChanger.DeleteRequest(1);
 
             // Assert
-            _contextMock.Verify(c => c.Requests.Find(It.Is<int>(r => r == dummyId)), Times.Once);
             _contextMock.Verify(c => c.Requests.Remove(It.Is<Request>(r => r == dummyRequest)), Times.Once);
             _contextMock.Verify(c => c.SaveChanges(), Times.Once);
 

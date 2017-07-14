@@ -11,7 +11,7 @@ namespace ConsumerSupport.Models.Requests
     public interface IRequestChanger
     {
         void DeleteRequest(int Id);
-        Request EditRequest(ChangeRequestViewModel changeRequest);
+        void EditRequest(ChangeRequestViewModel changeRequest);
         ChangeRequestViewModel GetChangeRequest(int Id);
     }
 
@@ -51,7 +51,7 @@ namespace ConsumerSupport.Models.Requests
             _context.SaveChanges();
         }
 
-        public Request EditRequest(ChangeRequestViewModel changedRequest)
+        public void EditRequest(ChangeRequestViewModel changedRequest)
         {
             var request = Find(changedRequest.Id);
             var deadline = changedRequest.DeadlineDate.Add(changedRequest.DeadlineTime.TimeOfDay);
@@ -61,8 +61,6 @@ namespace ConsumerSupport.Models.Requests
             request.SetDeadline(deadline);
 
             _context.SaveChanges();
-
-            return request;
         }
 
     }

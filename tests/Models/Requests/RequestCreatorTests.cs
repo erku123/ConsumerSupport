@@ -47,6 +47,7 @@ namespace ConsumerSupport.Tests.Models.Requests
             // Act
             _requestCreator.Create(request, principal);
 
+            // Assert
             var expectedDeadline = deadlineDate.Add(deadlineTime.TimeOfDay);
 
             Assert.Equal(request.Title, createdRequest.Title);
